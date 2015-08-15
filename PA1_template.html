@@ -133,11 +133,17 @@ nna&lt;-length(data[is.na(data$steps),1])
 print(paste0(&quot;number of NA values: &quot;,nna))</code></pre>
 <pre><code>## [1] &quot;number of NA values: 2304&quot;</code></pre>
 <pre class="r"><code>newData&lt;-data
-avgData&lt;-avgData[,1:2]
-newData&lt;-merge(newData,avgData) #merging with dataset of areverage values per interval
 
+avgData&lt;-data.frame(avgData) #convert from tbl_df
+#finds indexes of NA steps 
+ind&lt;-which(is.na(newData$steps))
 #replace na values with averages
-newData[is.na(newData$steps),&quot;steps&quot;]&lt;-newData[is.na(newData$steps),&quot;avgSteps&quot;]
+newData[ind,&quot;steps&quot;]&lt;-sapply(newData[ind,&quot;interval&quot;],
+      function(x) 
+      {
+        avgData[x==avgData$interval,&quot;avgSteps&quot;]
+      }
+)
 
 #aggregation for total steps per day
 sData&lt;- newData %&gt;% group_by(date) %&gt;% select(steps) %&gt;% summarise(totalSteps=sum(steps))
@@ -149,7 +155,10 @@ ggplot(data=sData, aes(totalSteps))+geom_histogram(binwidth = 500)+
 <pre><code>## [1] &quot;mean: 10766.1886792453&quot;</code></pre>
 <pre class="r"><code>print(paste0(&quot;median: &quot;,median(sData$totalSteps)))</code></pre>
 <pre><code>## [1] &quot;median: 10766.1886792453&quot;</code></pre>
-<p>As you can see median is different to median from first step The histogram after changing missing values is different around median ## Are there differences in activity patterns between weekdays and weekends?</p>
+<p>As you can see median is different to median from first step The histogram after changing missing values is different around median</p>
+</div>
+<div id="are-there-differences-in-activity-patterns-between-weekdays-and-weekends" class="section level2">
+<h2>Are there differences in activity patterns between weekdays and weekends?</h2>
 <pre class="r"><code>dataWeekdays&lt;-newData
 #finds weekdays and weekend
 dataWeekdays$weekend&lt;-factor(ifelse(weekdays(dataWeekdays$date) %in% c(&quot;Saturday&quot;, &quot;Sunday&quot;),&quot;weekend&quot;,&quot;weekday&quot;))

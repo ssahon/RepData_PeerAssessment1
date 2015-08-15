@@ -123,11 +123,17 @@ print(paste0("number of NA values: ",nna))
 
 ```r
 newData<-data
-avgData<-avgData[,1:2]
-newData<-merge(newData,avgData) #merging with dataset of areverage values per interval
 
+avgData<-data.frame(avgData) #convert from tbl_df
+#finds indexes of NA steps 
+ind<-which(is.na(newData$steps))
 #replace na values with averages
-newData[is.na(newData$steps),"steps"]<-newData[is.na(newData$steps),"avgSteps"]
+newData[ind,"steps"]<-sapply(newData[ind,"interval"],
+      function(x) 
+      {
+        avgData[x==avgData$interval,"avgSteps"]
+      }
+)
 
 #aggregation for total steps per day
 sData<- newData %>% group_by(date) %>% select(steps) %>% summarise(totalSteps=sum(steps))
@@ -156,6 +162,7 @@ print(paste0("median: ",median(sData$totalSteps)))
 
 As you can see median is different to median from first step
 The histogram after changing missing values is different around median
+
 ## Are there differences in activity patterns between weekdays and weekends?
 
 ```r
